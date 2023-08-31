@@ -6,6 +6,7 @@ class DBClient {
     }/${process.env.DB_DATABASE || "files_manager"}`;
     this.dbConn = new MongoClient(url);
     this.dbConn.connect();
+    
   }
 
   isAlive() {
@@ -13,10 +14,12 @@ class DBClient {
   }
 
   async nbUsers() {
-    return await this.dbConn.users.find().toArray().length;
+    const users = this.dbConn.db().collection("users");
+    return users.find().toArray().length;
   }
 
-  async nbFiles(){
+  async nbFiles() {
+    const files = this.dbConn.db().collection("files");
     return await files.find().toArray().length;
   }
 }
