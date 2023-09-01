@@ -1,12 +1,12 @@
-import { MongoClient } from "mongodb";
+import { MongoClient } from 'mongodb';
+
 class DBClient {
   constructor() {
-    let url = `mongodb://${process.env.DB_HOST || "localhost"}:${
+    const url = `mongodb://${process.env.DB_HOST || 'localhost'}:${
       process.env.DB_PORT || 27017
-    }/${process.env.DB_DATABASE || "files_manager"}`;
+    }/${process.env.DB_DATABASE || 'files_manager'}`;
     this.dbConn = new MongoClient(url);
     this.dbConn.connect();
-    
   }
 
   isAlive() {
@@ -14,13 +14,13 @@ class DBClient {
   }
 
   async nbUsers() {
-    const users = this.dbConn.db().collection("users");
+    const users = this.dbConn.db().collection('users');
     return users.find().toArray().length;
   }
 
   async nbFiles() {
-    const files = this.dbConn.db().collection("files");
-    return await files.find().toArray().length;
+    const files = this.dbConn.db().collection('files');
+    return files.find().toArray().length;
   }
 }
 
