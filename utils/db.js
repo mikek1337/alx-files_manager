@@ -28,7 +28,7 @@ class DBClient {
 
   async findUser(email) {
     const users = this.dbConn.db().collection("users");
-    return users.findOne(email);
+    return users.findOne({ email: email });
   }
 
   async createUser(user) {

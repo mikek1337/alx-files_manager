@@ -1,4 +1,4 @@
-import { createClient } from 'redis';
+import { createClient, print } from 'redis';
 import { promisify } from 'util';
 
 class RedisClient {
@@ -21,8 +21,8 @@ class RedisClient {
     return promisify(this.redis.get).bind(this.redis)(key);
   }
 
-  async set(key, value, duration = 0) {
-    this.redis.set(key, value);
+  async set(key, value, duration) {
+    this.redis.set(key, value, ()=>{});
     this.redis.expire(key, duration);
   }
 

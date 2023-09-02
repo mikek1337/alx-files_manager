@@ -13,7 +13,7 @@ class UserController {
       if (user) return res.status(400).send({ error: 'Already exist' });
       const hasedPassword = sha1(password);
       dbClient
-        .createUser({ email, hasedPassword })
+        .createUser({ email, password:hasedPassword })
         .then((user) => res.status(201).send({ id: user.insertedId, email }));
     });
   }
