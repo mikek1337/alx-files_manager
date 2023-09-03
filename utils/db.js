@@ -31,7 +31,7 @@ class DBClient {
     return users.findOne({ email: email });
   }
 
-  async findOne(data){
+  async findOne(data) {
     const user = this.dbConn.db().collection("users");
     return await user.findOne(data);
   }
@@ -51,6 +51,24 @@ class DBClient {
   async createFile(data) {
     const files = this.dbConn.db().collection("files");
     return files.insertOne(data);
+  }
+
+  async findFile(data) {
+    const files = this.dbConn.db().collection("files");
+    return files.findOne(data);
+  }
+
+  async allFiles(data) {
+    const files = this.dbConn.db().collection("files");
+    //pagination
+    const page = data.page || 0;
+    const pageLimit = 20;
+    const skip = page * limit;
+    const query = { parentId: data.parentId, page: page };
+    const cursor = await files.aggregate([{ $match: query }]);
+    const filesList = await cursor.toArray();
+    const count = await cursor.count();
+    return { filesList, count };
   }
 }
 
