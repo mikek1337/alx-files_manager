@@ -47,6 +47,11 @@ class DBClient {
 
     return foundUsers.length > 0;
   }
+
+  async createFile(data) {
+    const files = this.dbConn.db().collection("files");
+    return files.insertOne(data);
+  }
 }
 
 const dbClient = new DBClient();
