@@ -83,10 +83,21 @@ class FileController {
     const key = `auth_${token}`;
     const userID = await redisClient.get(key);
     if (!userID) return res.status(401).json({ error: "Unauthorized" });
-    const { parentId, page } = req.query;
-    const files = await dbClient.allFiles({ parentId: parentId });
-    if (!files) return res.status(404).json({ error: "Not found" });
-    return res.status(200).send(files);
+    const limit = 20;
+    let page = req.query.page || 0;
+    const parentId = req.query.parentId || 0;
+    dbClient.dbConn
+      .db()
+      .collection("files")
+      .aggregate([
+        { $match: { parentId: parentId } },
+        { $skip: limit * page },
+        { $limit: limit },
+      ])
+      .toArray((err, result) => {
+        if (err) throw err;
+        return res.status(200).send(result);
+      });
   }
 }
 
