@@ -1,7 +1,8 @@
-import redisClient from "../utils/redis";
-import dbClient from "../utils/db";
+import { MIMEType } from "util";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
+import redisClient from "../utils/redis";
+import dbClient from "../utils/db";
 class FileController {
   static async postUpload(req, res) {
     const token = req.header("X-Token");
@@ -98,6 +99,61 @@ class FileController {
         if (err) throw err;
         return res.status(200).send(result);
       });
+  }
+
+  static async putPublish(req, res) {
+    const token = req.header("X-Token");
+    const key = `auth_${token}`;
+    const userID = await redisClient.get(key);
+    if (!userID) return res.status(401).json({ error: "Unauthorized" });
+    const { id } = req.params;
+    const file = await dbClient.findFile({ _id: id, userId: userID });
+    if (!file) return res.status(404).json({ error: "Not found" });
+    const updatedFile = await dbClient.updateFile(id, { isPublic: true });
+    return res.status(200).send({
+      id: updatedFile._id,
+      userId: updatedFile.userId,
+      name: updatedFile.name,
+      type: updatedFile.type,
+      isPublic: updatedFile.isPublic,
+      parentId: updatedFile.parentId,
+    });
+  }
+
+  static async putUnpublish(req, res) {
+    const token = req.header("X-Token");
+    const key = `auth_${token}`;
+    const userID = await redisClient.get(key);
+    if (!userID) return res.status(401).json({ error: "Unauthorized" });
+    const { id } = req.params;
+    const file = await dbClient.findFile({ _id: id, userId: userID });
+    if (!file) return res.status(404).json({ error: "Not found" });
+    const updatedFile = await dbClient.updateFile(id, { isPublic: false });
+    return res.status(200).send({
+      id: updatedFile._id,
+      userId: updatedFile.userId,
+      name: updatedFile.name,
+      type: updatedFile.type,
+      isPublic: updatedFile.isPublic,
+      parentId: updatedFile.parentId,
+    });
+  }
+
+  static async getFile(req, res) {
+    const token = req.header("X-Token");
+    const key = `auth_${token}`;
+    const userID = await redisClient.get(key);
+    if (!userID) return res.status(401).json({ error: "Unauthorized" });
+    const { id } = req.params;
+    const file = await dbClient.findFile({ _id: id, userId: userID });
+    if (!file) return res.status(404).json({ error: "Not found" });
+    if (file.type === "folder")
+      return res.status(400).json({ error: "A folder doesn't have content" });
+    const filePath = file.localPath;
+    const fileData = fs.readFileSync(filePath, "utf-8");
+    const mimeType = MIMEType.lookup(filePath);
+    res.setHeader("Content-Type", mimeType);
+    return res.status(200).send(fileData);
   }
 }
 
