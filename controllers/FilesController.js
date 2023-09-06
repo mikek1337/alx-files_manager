@@ -3,7 +3,8 @@ import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import redisClient from "../utils/redis";
 import dbClient from "../utils/db";
-import Bull from "bull";
+import Queue from "bull";
+const fileQueue = new Queue("fileQueue", 'redis://127.0.0.1:6379');
 
 class FileController {
   static async postUpload(req, res) {
@@ -12,7 +13,6 @@ class FileController {
     const userID = await redisClient.get(key);
     if (!userID) return res.status(401).json({ error: "Unauthorized" });
     const { name, type, parentId, isPublic, data } = req.body;
-    console.log(req.body);
     const types = ["folder", "file", "image"];
     const filePath = process.env.FOLDER_PATH || "/tmp/files_manager";
     if (!name) return res.status(400).send({ error: "Missing name" });
@@ -54,11 +54,8 @@ class FileController {
       const toWrite = new Buffer.from(data, "base64").toString("utf-8");
       fs.writeFile(`${filePath}/${uuidv4()}`, toWrite, (err) => {
         if (err) throw err;
-        console.log("The file has been saved!");
       });
-      if (type == "image")
-      {
-        const fileQueue = Bull("fileQueue");
+      if (type === "image") {
         fileQueue.add({ userId: userID, fileId: fileData.ops[0]._id });
       }
 
