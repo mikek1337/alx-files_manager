@@ -3,6 +3,8 @@ import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import redisClient from "../utils/redis";
 import dbClient from "../utils/db";
+import Bull from "bull";
+
 class FileController {
   static async postUpload(req, res) {
     const token = req.header("X-Token");
@@ -54,6 +56,12 @@ class FileController {
         if (err) throw err;
         console.log("The file has been saved!");
       });
+      if (type == "image")
+      {
+        const fileQueue = Bull("fileQueue");
+        fileQueue.add({ userId: userID, fileId: fileData.ops[0]._id });
+      }
+
       const { _id } = fileData.ops[0];
       return res
         .status(201)
