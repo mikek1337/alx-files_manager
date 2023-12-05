@@ -40,7 +40,7 @@ class FileController {
         .status(201)
         .send({
           // eslint-disable-next-line no-undef
-          id: _id, userId, name, type, isPublic, parentId,
+          id: _id, userId: userID, name, type, isPublic, parentId,
         });
     // eslint-disable-next-line no-else-return
     } else {
@@ -70,7 +70,7 @@ class FileController {
       return res
         .status(201)
         .send({
-          id: _id, userID, name, type, isPublic, parentId,
+          id: _id, userId: userID, name, type, isPublic, parentId,
         });
     }
   }
